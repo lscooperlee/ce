@@ -1,5 +1,7 @@
 import curses
 
+import os
+
 from contextlib import contextmanager
 
 from mode import InsertMode
@@ -9,6 +11,7 @@ from mode import InsertMode
 def run():
 
     try:
+        os.environ["ESCDELAY"] = "0"
 
         stdscr = curses.initscr()
         curses.start_color()
@@ -17,9 +20,7 @@ def run():
 
         curses.noecho()
         curses.cbreak()
-
-        #stdscr.keypad(True)
-        stdscr.keypad(False)
+        curses.nl()
 
         head_x = 0
         head_y = 0
