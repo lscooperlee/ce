@@ -34,6 +34,17 @@ def insert_esc(self, key):
     print(self.text)
 insert_mode.key_map[27] = insert_esc #ESC
 
+def flatten_text(self, y, x):
+    idx = 0
+    for t in self.text[:y]:
+        idx += len(t)
+    idx += x
+
+    tmp = []
+    for t in self.text:
+        tmp+=t
+    return tmp, idx - 1
+
 def insert_enter(self, key):
     y, x = self.windows['main'].getyx()
 
@@ -93,12 +104,20 @@ insert_mode.key_map[curses.KEY_RIGHT] = insert_right
 
 def insert_backspace(self, key):
     y, x = self.windows['main'].getyx()
-    y, x = adjust_cursor(self, y, x-1)
+    flattend, idx = flatten_text(self, y, x)
+    if y == 0 and x == 0:
+        return
+    elif x == 0:
+        y, x = adjust_cursor(self, y-1, 1000)
+    else:
+        y, x = adjust_cursor(self, y, x-1)
 
+    #self.text[y].pop(x)
     try:
-        self.text[y].pop(x)
+        flattend.pop(idx)
     except IndexError:
         pass
+    self.text = [[y for y in x] + ['\n'] for x in ''.join(flattend).split('\n')]
     self.windows['main'].delch(y, x)
     self.windows['main'].move(y, x)
 
