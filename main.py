@@ -4,7 +4,7 @@ import os
 
 from contextlib import contextmanager
 
-from mode import InsertMode
+from mode import insert_mode
 
 
 @contextmanager
@@ -46,11 +46,9 @@ def run():
         bottom_width = curses.COLS - 1
         bottom_win = curses.newwin(bottom_height, bottom_width, bottom_y, bottom_x)
 
-        #head_win.insstr("main", curses.A_BLINK)
         head_win.chgat(curses.color_pair(1))
         head_win.insstr("main", curses.color_pair(1))
 
-        #main_win.border()
         status_win.chgat(curses.color_pair(1))
 
         bottom_win.insstr("hel你lo")
@@ -60,8 +58,12 @@ def run():
         status_win.refresh()
         bottom_win.refresh()
 
-        mode = InsertMode(main_win)
-        mode.run()
+        windows = {"head": head_win, "main": main_win,
+                   "status": status_win, "bottom": bottom_win}
+
+        mode = insert_mode
+        while True:
+            mode.run(windows)
 
     finally:
 
