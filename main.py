@@ -4,7 +4,7 @@ import os
 
 from contextlib import contextmanager
 
-from mode import insert_mode
+from core.mode import insert_mode
 
 
 @contextmanager
