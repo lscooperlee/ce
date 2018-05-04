@@ -1,81 +1,53 @@
 
 import curses
 from curses import ascii
+from .buffer import Buffer
 
 class InsertMode:
 
     def __init__(self):
-        self.text = []
+        self.buffer = Buffer()
         self.key_map = {"*": lambda s, c: None}
 
     def run(self, windows):
         self.windows = windows
         self.windows['main'].keypad(True)
-    #    while True:
-        if True:
-            char = self.windows['main'].getch()
-            try:
-                self.key_map[char](self, char)
-            except KeyError:
-                self.key_map["*"](self, char)
 
-        return self
+        char = self.windows['main'].getch()
+        try:
+            mode = self.key_map[char](self, char)
+        except KeyError:
+            mode = self.key_map["*"](self, char)
+
+        return self if mode is None else mode
 
 insert_mode = InsertMode()
-
-def yx2idx(self, y, x):
-    try:
-        idx = [i for i, n in enumerate(self.text) if n == '\n'][y-1] + x + 1
-    except:
-        idx = x
-    return idx
 
 def insert_default(self, key):
     if ascii.isprint(key):
         y, x = self.windows['main'].getyx()
-        idx = yx2idx(self, y, x)
-        self.text.insert(idx, chr(key))
+        self.buffer.insert(x, y, chr(key))
         self.windows['main'].echochar(key)
 insert_mode.key_map["*"] = insert_default
 
 def insert_esc(self, key):
-    print(self.text)
+#    self.windows['bottom'].insstr(self.buffer.str())
+#    self.windows['bottom'].refresh()
+#    #print(self.buffer.str())
+    return CommandMode()
 insert_mode.key_map[27] = insert_esc #ESC
-
-def flatten_text(self, y, x):
-    idx = 0
-    for t in self.text[:y]:
-        idx += len(t)
-    idx += x
-
-    tmp = []
-    for t in self.text:
-        tmp+=t
-    return tmp, idx - 1
-
-def deflatten_text(self, flattened, index):
-    tmp = [[]]
-    y, x = 0, 0
-    for t in flattened:
-        if t == '\n':
-            tmp.append([])
-        tmp[len(tmp) - 1].append(t)
 
 def insert_enter(self, key):
     y, x = self.windows['main'].getyx()
-    idx = yx2idx(self, y, x)
-    self.text.insert(idx, chr(key))
+    self.buffer.insert(x, y, chr(key))
 
-    self.windows['main'].addstr(y+1, 0, ''.join(self.text[idx:]))
-
+    self.windows['main'].addstr(y, x, self.buffer.str(x, y))
     self.windows['main'].move(y+1, 0)
 
 insert_mode.key_map[10] = insert_enter #Enter
 
 def adjust_cursor(self, y, x):
-    retidx = [0]+[i for i, n in enumerate(self.text) if n == '\n']
-
-    maxy = len(retidx)
+    maxy = len(self.buffer.indexes) - 1
 
     if y < 0:
         y = 0
@@ -83,20 +55,33 @@ def adjust_cursor(self, y, x):
     if y >= maxy:
         y = maxy - 1
 
-    try:
-        textx = self.text[retidx[y]:retidx[y+1]]
-        maxx = len(textx) - 1
-    except:
-        textx = self.text[retidx[y]:]
-        maxx = len(textx)
-
-    #print(textx, y, x, retidx)
-
+    maxx = len(self.buffer.row(y)) + 1
     if x >= maxx:
         x = maxx - 1
 
     if x < 0:
         x = 0
+
+    return y, x
+
+def adjust_cursor1(self, y, x):
+
+    maxx = len(self.buffer.row(y)) + 1
+    if x >= maxx:
+        y += 1
+        x = 0
+
+    if x < 0:
+        y -= 1
+        x = len(self.buffer.row(y)) - 1
+
+    maxy = len(self.buffer.indexes) - 1
+
+    if y < 0:
+        y = 0
+
+    if y >= maxy:
+        y = maxy - 1
 
     return y, x
 
@@ -126,26 +111,14 @@ insert_mode.key_map[curses.KEY_RIGHT] = insert_right
 
 def insert_backspace(self, key):
     y, x = self.windows['main'].getyx()
-    flattend, idx = flatten_text(self, y, x)
     if y == 0 and x == 0:
         return
-    elif x == 0:
-        y, x = adjust_cursor(self, y-1, 1000)
-    else:
-        y, x = adjust_cursor(self, y, x-1)
-
-    #self.text[y].pop(x)
-    try:
-        flattend.pop(idx)
-    except IndexError:
-        pass
-    self.text = [[y for y in x] + ['\n'] for x in ''.join(flattend).split('\n')]
-    self.windows['main'].delch(y, x)
+    y, x = adjust_cursor1(self, y, x-1)
+    self.buffer.delete(x, y)
+    self.windows['main'].addstr(y, x, self.buffer.str(x, y))
+    self.windows['main'].clrtobot()
     self.windows['main'].move(y, x)
-
 insert_mode.key_map[curses.KEY_BACKSPACE] = insert_backspace
-
-
 
 class CommandMode:
 
@@ -155,11 +128,13 @@ class CommandMode:
     def run(self, windows):
         self.windows = windows
         self.windows['main'].keypad(True)
-        while True:
-            char = self.windows['main'].getch()
-            try:
-                self.key_map[char](self, char)
-            except KeyError:
-                self.key_map["*"](self, char)
+
+        char = self.windows['main'].getch()
+        try:
+            mode = self.key_map[char](self, char)
+        except KeyError:
+            mode = self.key_map["*"](self, char)
+
+        return self if mode is None else mode
 
 command_mode = CommandMode()

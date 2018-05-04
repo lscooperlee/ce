@@ -63,7 +63,7 @@ def run():
 
         mode = insert_mode
         while True:
-            mode.run(windows)
+            mode = mode.run(windows)
 
     finally:
 
