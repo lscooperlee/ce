@@ -4,7 +4,8 @@ import os
 
 from contextlib import contextmanager
 
-from core.mode import insert_mode
+from core.mode import InsertMode
+from core.buffer import Buffer
 
 
 @contextmanager
@@ -51,8 +52,6 @@ def run():
 
         status_win.chgat(curses.color_pair(1))
 
-        bottom_win.insstr("hel你lo")
-
         head_win.refresh()
         main_win.refresh()
         status_win.refresh()
@@ -61,9 +60,10 @@ def run():
         windows = {"head": head_win, "main": main_win,
                    "status": status_win, "bottom": bottom_win}
 
-        mode = insert_mode
+        buffer = Buffer()
+        mode = InsertMode(buffer, windows)
         while True:
-            mode = mode.run(windows)
+            mode = mode.run()
 
     finally:
 
