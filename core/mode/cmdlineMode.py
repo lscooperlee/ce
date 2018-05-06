@@ -2,17 +2,19 @@
 import curses
 from curses import ascii
 from .mode import Mode
+from ..command import command_save
 from . import normalMode
 
 
 class CmdlineMode(Mode):
+
+    actions = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.windows['bottom'].keypad(True)
         self.windows['bottom'].echochar(":")
         self.cmd = []
-
 
 def cmdlineMode_default(self, key):
     if ascii.isprint(key):
@@ -48,10 +50,23 @@ def cmdlineMode_backspace(self, key):
     self.windows['bottom'].refresh()
 CmdlineMode.key_map[curses.KEY_BACKSPACE] = cmdlineMode_backspace
 
-def cmdlineMode_enter(self, key):
-    self.windows['main'].addstr(0, 0, ''.join(self.cmd))
-CmdlineMode.key_map[10] = cmdlineMode_enter #Enter
-
 def cmdlineMode_esc(self, key):
     return normalMode.NormalMode(self.buffer, self.windows)
 CmdlineMode.key_map[27] = cmdlineMode_esc #ESC
+
+def cmdlineMode_enter(self, key):
+    params = ''.join(self.cmd).split()
+    cmd, args = params[0], params[1:]
+
+    while cmd:
+        try:
+            return self.actions[cmd](self, *args)
+        except KeyError:
+            cmd = cmd[:-1]
+        except Exception as e:
+            print(e, 'not a valid command')
+            return None
+
+CmdlineMode.key_map[10] = cmdlineMode_enter #Enter
+
+CmdlineMode.actions["w"] = command_save
