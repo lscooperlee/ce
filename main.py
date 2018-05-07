@@ -1,6 +1,7 @@
 import os
 import sys
 
+from core.command import command
 from core.mode import InsertMode
 from core.buffer import Buffer
 from core.ui.screen import create_main_windows

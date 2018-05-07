@@ -10,67 +10,6 @@ class InsertMode(Mode):
         super().__init__(*args, **kwargs)
         self.windows['main'].keypad(True)
 
-def insertMode_default(self, key):
-    if ascii.isprint(key):
-        y, x = self.windows['main'].getyx()
-        self.buffer.insert(x, y, chr(key))
-        self.windows['main'].insch(key)
-        self.windows['main'].move(y, x+1)
-        self.windows['main'].refresh()
-InsertMode.key_map["*"] = insertMode_default
-
-def insertMode_esc(self, key):
-    return NormalMode(self.buffer, self.windows)
-InsertMode.key_map[27] = insertMode_esc #ESC
-
-def insertMode_enter(self, key):
-    y, x = self.windows['main'].getyx()
-    self.buffer.insert(x, y, chr(key))
-
-    self.windows['main'].addstr(y, x, self.buffer.str(x, y))
-    self.windows['main'].move(y+1, 0)
-
-InsertMode.key_map[10] = insertMode_enter #Enter
-
-def adjust_cursor(self, y, x):
-    maxy = len(self.buffer.indexes) - 1
-
-    if y < 0:
-        y = 0
-
-    if y >= maxy:
-        y = maxy - 1
-
-    maxx = len(self.buffer.row(y)) + 1
-    if x >= maxx:
-        x = maxx - 1
-
-    if x < 0:
-        x = 0
-
-    return y, x
-
-def adjust_cursor1(self, y, x):
-
-    maxx = len(self.buffer.row(y)) + 1
-    if x >= maxx:
-        y += 1
-        x = 0
-
-    if x < 0:
-        y -= 1
-        x = len(self.buffer.row(y)) - 1
-
-    maxy = len(self.buffer.indexes) - 1
-
-    if y < 0:
-        y = 0
-
-    if y >= maxy:
-        y = maxy - 1
-
-    return y, x
-
 def insertMode_up(self, key):
     y, x = self.windows['main'].getyx()
     y = y-1 if y > 0 else 0

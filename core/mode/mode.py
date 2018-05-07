@@ -23,4 +23,10 @@ class Mode(metaclass=ModeMeta):
 
         return self if mode is None else mode
 
+    @classmethod
+    def register(self, key):
+        def _register(func):
+            self.key_map[key] = func
+            return func
+        return _register
 
