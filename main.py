@@ -2,7 +2,7 @@ import os
 import sys
 
 from core.command import command
-from core.mode import InsertMode
+from core.mode import NormalMode
 from core.buffer import Buffer
 from core.ui.screen import create_main_windows
 
@@ -22,7 +22,7 @@ def run():
         windows['main'].insstr(buffer.str())
         windows['main'].move(0, 0)
         windows['main'].refresh()
-        mode = InsertMode(buffer, windows)
+        mode = NormalMode(buffer, windows)
         while True:
             mode = mode.run()
 

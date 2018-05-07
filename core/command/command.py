@@ -8,6 +8,45 @@ from ..mode import InsertMode, NormalMode, CmdlineMode
 def NormalMode_colon(mode, key):
     return CmdlineMode(mode.buffer, mode.windows)
 
+@NormalMode.register(ord('i'))
+def NormalMode_colon(mode, key):
+    return InsertMode(mode.buffer, mode.windows)
+
+@NormalMode.register(ord('l'))
+def NormalMode_colon(mode, key):
+    y, x = mode.windows['main'].getyx()
+    x = x+1 if x < len(mode.buffer.row(y)) - 1 else x
+    x = x-1 if mode.buffer.row(y)[x] == '\n' else x
+    mode.windows['main'].move(y, x)
+
+@NormalMode.register(ord('h'))
+def NormalMode_colon(mode, key):
+    y, x = mode.windows['main'].getyx()
+    x = x-1 if x > 0 else x
+    mode.windows['main'].move(y, x)
+
+@NormalMode.register(ord('j'))
+def NormalMode_colon(mode, key):
+    y, x = mode.windows['main'].getyx()
+    y = y+1 if y < len(mode.buffer.indexes) - 2 else y
+    x = len(mode.buffer.row(y)) - 1 if x > len(mode.buffer.row(y)) - 1 else x
+    x = x-1 if mode.buffer.row(y)[x] == '\n' else x
+    mode.windows['main'].move(y, x)
+
+@NormalMode.register(ord('k'))
+def NormalMode_colon(mode, key):
+    y, x = mode.windows['main'].getyx()
+    y = y-1 if y > 0 else y
+    x = len(mode.buffer.row(y)) - 1 if x > len(mode.buffer.row(y)) - 1 else x
+    x = x-1 if mode.buffer.row(y)[x] == '\n' else x
+    mode.windows['main'].move(y, x)
+
+@NormalMode.register(ord('h'))
+def NormalMode_colon(mode, key):
+    y, x = mode.windows['main'].getyx()
+    x = x-1 if x > 0 else x
+    mode.windows['main'].move(y, x)
+
 @CmdlineMode.cmd_register('w')
 def command_save(mode, filename=None):
     if not filename:
@@ -60,6 +99,9 @@ def cmdlineMode_esc(mode, key):
 
 @CmdlineMode.register(10)
 def cmdlineMode_enter(mode, key):
+    mode.windows['bottom'].move(0, 1)
+    mode.windows['bottom'].clrtoeol()
+    mode.windows['bottom'].refresh()
     params = ''.join(mode.cmd).split()
     cmdwithend, args = params[0] + ' ', params[1:]
 
@@ -70,9 +112,17 @@ def cmdlineMode_enter(mode, key):
                 cmdlist.append(cmdwithend[:-i])
                 cmdwithend = cmdwithend[-i:]
                 break
+        else:
+            break
 
-    for cmd in cmdlist:
-        mode.actions[cmd](mode, *args)
+    if not cmdlist:
+        mode.windows['bottom'].insstr("no command")
+        mode.windows['bottom'].refresh()
+    else:
+        for cmd in cmdlist:
+            mode.actions[cmd](mode, *args)
+
+    return NormalMode(mode.buffer, mode.windows)
 
 
 @InsertMode.register("*")
@@ -86,6 +136,7 @@ def insertMode_default(mode, key):
 
 @InsertMode.register(27) #ESC
 def insertMode_esc(mode, key):
+    y, x = mode.windows['main'].getyx()
     return NormalMode(mode.buffer, mode.windows)
 
 @InsertMode.register(10) #Enter
