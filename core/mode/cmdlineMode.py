@@ -2,7 +2,7 @@
 import curses
 from curses import ascii
 from .mode import Mode
-from ..command import command_save
+from ..command import *
 from . import normalMode
 
 
@@ -58,15 +58,19 @@ def cmdlineMode_enter(self, key):
     params = ''.join(self.cmd).split()
     cmd, args = params[0], params[1:]
 
-    while cmd:
-        try:
-            return self.actions[cmd](self, *args)
-        except KeyError:
-            cmd = cmd[:-1]
-        except Exception as e:
-            print(e, 'not a valid command')
-            return None
+    cmdlist = []
+    cmdwithend = cmd + ' '
+    while cmdwithend != ' ':
+        for i in range(1, len(cmdwithend) + 1):
+            if cmdwithend[:-i] in self.actions:
+                cmdlist.append(cmdwithend[:-i])
+                cmdwithend = cmdwithend[-i:]
+                break
+
+    for cmd in cmdlist:
+        self.actions[cmd](self, *args)
 
 CmdlineMode.key_map[10] = cmdlineMode_enter #Enter
 
 CmdlineMode.actions["w"] = command_save
+CmdlineMode.actions["q"] = command_quit

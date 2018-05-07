@@ -22,3 +22,5 @@ class Mode(metaclass=ModeMeta):
             mode = self.key_map["*"](self, char)
 
         return self if mode is None else mode
+
+
