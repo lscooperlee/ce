@@ -11,11 +11,11 @@ class CmdlineMode(Mode):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.windows['bottom'].keypad(True)
-        self.windows['bottom'].insch(0, 0, ":")
-        self.windows['bottom'].move(0, 1)
-        self.windows['bottom'].clrtoeol()
-        self.windows['bottom'].refresh()
+        self.ui.windows['bottom'].keypad(True)
+        self.ui.windows['bottom'].insch(0, 0, ":")
+        self.ui.windows['bottom'].move(0, 1)
+        self.ui.windows['bottom'].clrtoeol()
+        self.ui.windows['bottom'].refresh()
         self.cmd = []
 
     @classmethod

@@ -4,12 +4,14 @@ import sys
 from core.command import command
 from core.mode import NormalMode
 from core.buffer import Buffer
-from core.ui.screen import create_main_windows
+from core.ui.ui import create_main_windows
+from core.ui.screen import CursesScreen
 
 
 def run():
 
     os.environ["ESCDELAY"] = "0"
+
     try:
         with open(sys.argv[1], 'a+') as fd:
             fd.seek(0)
@@ -18,11 +20,9 @@ def run():
     except:
         buffer = Buffer()
 
-    with create_main_windows() as windows:
-        windows['main'].insstr(buffer.str())
-        windows['main'].move(0, 0)
-        windows['main'].refresh()
-        mode = NormalMode(buffer, windows)
+
+    with CursesScreen(buffer.str()) as screen:
+        mode = NormalMode(buffer, screen)
         while True:
             mode = mode.run()
 

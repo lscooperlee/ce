@@ -10,12 +10,12 @@ class ModeMeta(type):
 
 class Mode(metaclass=ModeMeta):
 
-    def __init__(self, buffer, windows):
+    def __init__(self, buffer, ui):
         self.buffer = buffer
-        self.windows = windows
+        self.ui = ui
 
     def run(self):
-        char = self.windows['main'].getch()
+        char = self.ui.windows['main'].getch()
         try:
             mode = self.key_map[char](self, char)
         except KeyError:
