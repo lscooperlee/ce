@@ -26,6 +26,8 @@ def run():
         while True:
             mode = mode.run()
 
+    print("buffer: ", buffer.str())
+
 
 
 if __name__ == "__main__":

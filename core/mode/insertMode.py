@@ -2,7 +2,6 @@
 import curses
 from curses import ascii
 from .mode import Mode
-from .normalMode import NormalMode
 
 class InsertMode(Mode):
 

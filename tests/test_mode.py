@@ -1,6 +1,5 @@
 import unittest
 
-from core.mode import insert_mode
 
 class TestMode(unittest.TestCase):
 

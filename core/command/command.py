@@ -12,6 +12,11 @@ def NormalMode_colon(mode, key):
 def NormalMode_colon(mode, key):
     return InsertMode(mode.buffer, mode.ui)
 
+@NormalMode.register(ord('a'))
+def NormalMode_colon(mode, key):
+    mode.ui.move_right(True)
+    return InsertMode(mode.buffer, mode.ui)
+
 @NormalMode.register(ord('l'))
 def NormalMode_colon(mode, key):
     mode.ui.move_right()
@@ -39,6 +44,7 @@ def command_save(mode, filename=None):
     if not filename:
         filename = mode.buffer.name
 
+    print(mode.buffer.text, end='')
     with open(filename, 'w') as fd:
         fd.write(mode.buffer.str())
 
@@ -48,12 +54,9 @@ def command_quit(mode, filename=None):
 
 @CmdlineMode.register("*")
 def cmdlineMode_default(mode, key):
-    if ascii.isprint(key):
-        y, x = mode.ui.windows['bottom'].getyx()
-        mode.cmd.insert(x-1, chr(key))
-        mode.ui.windows['bottom'].insch(key)
-        mode.ui.windows['bottom'].move(y, x+1)
-        mode.ui.windows['bottom'].refresh()
+    if curses.ascii.isprint(key):
+        index = mode.ui.bottom_char(key)
+        mode.cmd.insert(index-1, chr(key))
 
 @CmdlineMode.register(curses.KEY_LEFT)
 def cmdlineMode_left(mode, key):
@@ -114,51 +117,37 @@ def cmdlineMode_enter(mode, key):
 
 @InsertMode.register("*")
 def insertMode_default(mode, key):
-    mode.ui.ins_char(key)
+    if curses.ascii.isprint(key):
+        index = mode.ui.ins_char(key)
+        mode.buffer.insert(index, chr(key))
 
 @InsertMode.register(27) #ESC
 def insertMode_esc(mode, key):
-    y, x = mode.ui.windows['main'].getyx()
+    mode.ui.ins_esc(key)
     return NormalMode(mode.buffer, mode.ui)
 
 @InsertMode.register(10) #Enter
 def insertMode_enter(mode, key):
-    mode.ui.ins_enter(key)
+    index=mode.ui.ins_enter(key)
+    mode.buffer.insert(index, '\n')
 
 @InsertMode.register(curses.KEY_UP)
 def insertMode_up(mode, key):
-    y, x = mode.ui.windows['main'].getyx()
-    y = y-1 if y > 0 else 0
-    x = len(mode.buffer.row(y)) - 1 if x > len(mode.buffer.row(y)) - 1 else x
-    mode.ui.windows['main'].move(y, x)
+    mode.ui.move_up(True)
 
 @InsertMode.register(curses.KEY_DOWN)
 def insertMode_down(mode, key):
-    y, x = mode.ui.windows['main'].getyx()
-    y = y+1 if y < len(mode.buffer.indexes) - 2 else y
-    x = len(mode.buffer.row(y)) - 1 if x > len(mode.buffer.row(y)) - 1 else x
-    mode.ui.windows['main'].move(y, x)
+    mode.ui.move_down(True)
 
 @InsertMode.register(curses.KEY_LEFT)
 def insertMode_left(mode, key):
-    y, x = mode.ui.windows['main'].getyx()
-    x = x-1 if x > 0 else 0
-    mode.ui.windows['main'].move(y, x)
+    mode.ui.move_left(True)
 
 @InsertMode.register(curses.KEY_RIGHT)
 def insertMode_right(mode, key):
-    y, x = mode.ui.windows['main'].getyx()
-    x = x+1 if x <= len(mode.buffer.row(y)) - 1 else x
-    x = x-1 if mode.buffer.row(y)[x-1] == '\n' else x
-    mode.ui.windows['main'].move(y, x)
+    mode.ui.move_right(True)
 
 @InsertMode.register(curses.KEY_BACKSPACE)
 def insertMode_backspace(mode, key):
-    y, x = mode.ui.windows['main'].getyx()
-    if y == 0 and x == 0:
-        return
-    y, x = adjust_cursor1(mode, y, x-1)
-    mode.buffer.delete(x, y)
-    mode.ui.windows['main'].addstr(y, x, mode.buffer.str(x, y))
-    mode.ui.windows['main'].clrtobot()
-    mode.ui.windows['main'].move(y, x)
+    index=mode.ui.ins_backspace(key)
+    mode.buffer.delete(index)
