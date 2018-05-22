@@ -31,8 +31,9 @@ class TestMode(unittest.TestCase):
                               7: [6, 1]}
         self.assertEqual(window.actual2yx, expected_actual2yx)
 
+    @unittest.skip
     def test_move(self):
-        window = CursesWindow(0, 0, 5, 10,
+        window = CursesWindow(0, 0, 10, 10,
                               '1\n'
                               '1234567890123\n'
                               '1234567890\n'
@@ -70,13 +71,48 @@ class TestMode(unittest.TestCase):
 #            self.assertEqual(win.window.inch(y, x), ord('c'))
 
     @unittest.skip
+    def test_scroll(self):
+        window = CursesWindow(0, 0, 5, 10,
+                              '1\n'
+                              '1234567890123\n'
+                              '1234567890\n'
+                              '1234567890abcdefghij\n'
+                              '1234567890abcdefgh\n')
+        window.update_ref()
+        self.assertEqual(window._yx2actual(0, 0), (0, 0))
+        self.assertEqual(window._yx2actual(0, 1), (0, 1))
+        self.assertEqual(window._yx2actual(0, 12), (1, 2))
+        self.assertEqual(window._yx2actual(1, 2), (1, 2))
+        self.assertEqual(window._yx2actual(3, 15), (5, 5))
+        self.assertEqual(window._yx2actual(4, 12), (7, 2))
+
+        screen = CursesScreen({'main': window})
+
+        with screen as s:
+            win = s.windows['main']
+            time.sleep(1)
+            y, x = win.scroll(0)
+            time.sleep(1)
+            y, x = win.scroll(1)
+            time.sleep(1)
+            return
+            y, x = win.scroll(2)
+            time.sleep(1)
+            y, x = win.scroll(3)
+            time.sleep(1)
+            y, x = win.scroll(-4)
+            time.sleep(1)
+            y, x = win.scroll(-2)
+            time.sleep(1)
+
     def test_insrow(self):
-        window = CursesWindow(0, 0, 10, 10,
+        window = CursesWindow(0, 0, 4, 10,
                               '1234\n1234567890123\n123456789012345678\n')
         screen = CursesScreen({'main': window})
 
         with screen as s:
             win = s.windows['main']
+            time.sleep(1)
             win.insrow(1, 0, 'abcde')
             time.sleep(1)
             win.insrow(2, 5, 'abcde')

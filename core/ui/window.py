@@ -23,7 +23,7 @@ class CursesWindow:
         #print(ay, an, self.yx2actual, file=open('/tmp/log', 'a+'))
 
         for n in range(an):
-            if ay+n >= self.height:
+            if ay+an >= self.height:
                 break
             nthstr = rowstr[self.width*n:(n+1)*self.width]
             #print(nthstr, ay, n, file=open('/tmp/log', 'a+'))
@@ -56,9 +56,17 @@ class CursesWindow:
         return ay, ax
 
     def scroll(self, line):
-
-        self.window.scroll(line)
-        self._insrow(ay, self.rows[y])
+        actual_line = self._yx2actual[self.scroll_line][1]
+        self.scroll_line += line
+        self.window.scroll(actual_line)
+        #self._insrow(4, 'abc')
+        self.window.insstr(4, 0, 'abc')
+        #try:
+        #    self._insrow(self.height-line-1, self.rows[self.scroll_line+self.height-1])
+        #except:
+        #    pass
+        self.window.refresh()
+        return 0, 0
 
     def init(self):
         self.window = curses.newwin(self.height, self.width, self.y, self.x)
