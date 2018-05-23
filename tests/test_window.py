@@ -4,7 +4,7 @@ import time
 from core.ui.window import CursesWindow
 from core.ui.screen import CursesScreen
 
-class TestMode(unittest.TestCase):
+class TestWindow(unittest.TestCase):
 
     def test_update_ref(self):
         window = CursesWindow(0, 0, 10, 10,
@@ -70,14 +70,13 @@ class TestMode(unittest.TestCase):
             time.sleep(1)
 #            self.assertEqual(win.window.inch(y, x), ord('c'))
 
-    @unittest.skip
     def test_scroll(self):
         window = CursesWindow(0, 0, 5, 10,
                               '1\n'
-                              '1234567890123\n'
-                              '1234567890\n'
-                              '1234567890abcdefghij\n'
-                              '1234567890abcdefgh\n')
+                              '2234567890123\n'
+                              '3234567890\n'
+                              '4234567890abcdefghij\n'
+                              '5234567890abcdefgh\n')
         window.update_ref()
         self.assertEqual(window._yx2actual(0, 0), (0, 0))
         self.assertEqual(window._yx2actual(0, 1), (0, 1))

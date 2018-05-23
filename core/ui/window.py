@@ -56,15 +56,13 @@ class CursesWindow:
         return ay, ax
 
     def scroll(self, line):
-        actual_line = self._yx2actual[self.scroll_line][1]
+        if line == 0:
+            return 0, 0
         self.scroll_line += line
+        actual_line = self.yx2actual[self.scroll_line-1][1]
         self.window.scroll(actual_line)
-        #self._insrow(4, 'abc')
-        self.window.insstr(4, 0, 'abc')
-        #try:
-        #    self._insrow(self.height-line-1, self.rows[self.scroll_line+self.height-1])
-        #except:
-        #    pass
+        for n, row in enumerate(self.rows[self.scroll_line-1]):
+            self._insrow(self.scroll_line, row)
         self.window.refresh()
         return 0, 0
 
